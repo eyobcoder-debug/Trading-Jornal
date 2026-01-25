@@ -1720,6 +1720,7 @@ function exportData() {
 
 function clearAllTrades() {
     if (confirm('Are you sure you want to delete ALL trades? This action cannot be undone.')) {
+        localStorage.clear();
         trades = [];
         localStorage.removeItem('tradingJournalTrades');
         renderJournalTable();
