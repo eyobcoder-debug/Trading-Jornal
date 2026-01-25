@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal Options Control Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --light-gray: #e5e7eb;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {    
+            display: flex;    
+            justify-content: space-between;    
+            align-items: center;    
+            margin-bottom: 20px;    
+            padding: 15px;    
+            background: linear-gradient(to right, #1e293b, #0f172a);    
+            border-radius: 10px;    
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);    
+        }    
+
+    .logo {    
+        display: flex;    
+        align-items: center;    
+        gap: 15px;    
+    }    
+
+    .logo i {    
+        font-size: 2.5rem;    
+        color: #3b82f6;    
+    }    
+
+    .logo h1 {    
+        font-size: 2rem;    
+        font-weight: 700;    
+        background: linear-gradient(to right, #3b82f6, #8b5cf6);    
+        -webkit-background-clip: text;    
+        background-clip: text;    
+        color: transparent;    
+    }    
+
+    .nav-tabs {    
+        display: flex;    
+        gap: 5px;    
+        background-color: #1e293b;    
+        padding: 5px;    
+        border-radius: 10px;    
+    }    
+
+    .tab-btn {    
+        padding: 12px 24px;    
+        background: none;    
+        border: none;    
+        color: #94a3b8;    
+        font-weight: 600;    
+        border-radius: 8px;    
+        cursor: pointer;    
+        transition: all 0.3s;    
+        display: flex;    
+        align-items: center;    
+        gap: 8px;    
+        white-space: nowrap;    
+        text-decoration: none;    
+    }    
+
+    .tab-btn:hover {    
+        color: #cbd5e1;    
+        background-color: #334155;    
+    }    
+
+    .tab-btn.active {    
+        color: #ffffff;    
+        background-color: #3b82f6;    
+    }    
+    
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .intro-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .intro-box h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .intro-box p {
+            margin-bottom: 15px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-top: 4px solid var(--primary);
+        }
+
+        .feature-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) {        
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .categories-sidebar {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .categories-sidebar h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .category-list {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .category-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .category-item.active {
+            background-color: rgba(37, 99, 235, 0.1);
+            border-left: 4px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .category-icon {
+            color: var(--primary);
+            width: 20px;
+        }
+
+        .options-manager {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .manager-header h3 {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .options-count {
+            background-color: var(--light-gray);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 25px;
+            padding: 10px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+        }
+
+        .option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid var(--success);
+        }
+
+        .option-item:nth-child(odd) {
+            background-color: white;
+        }
+
+        .option-text {
+            font-weight: 500;
+        }
+
+        .delete-option {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .delete-option:hover {
+            background-color: #dc2626;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 600px) {            
+            .nav-tabs {    
+                flex-wrap: wrap;      
+                margin-left: 25%;              
+            }    
+            
+            .tab-btn {    
+                padding: 10px 15px;    
+                font-size: 0.9rem;                    
+            }    
+        
+            .controls {
+                flex-direction: column;
+            }
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #0da271;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+
+        .reset-section {
+            background-color: #fef3c7;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .reset-section h4 {
+            color: var(--warning);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reset-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 600;
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            background-color: var(--success);
+        }
+
+        .notification.error {
+            background-color: var(--danger);
+        }
+
+        .notification.warning {
+            background-color: var(--warning);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--light-gray);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .data-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: 30px;
+        }
+
+        .data-info h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .storage-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #f0f9ff;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>    
+            <div class="logo">    
+                <i class="fas fa-chart-line"></i>    
+                <h1>Trading Journal</h1>    
+            </div>    <div class="nav-tabs">    
+            <a href="index.html" class="tab-btn">    
+                <i class="fas fa-table"></i>    
+                Journal Table    
+            </a>    
+            <a href="pure system.html" class="tab-btn">    
+                <i class="fas fa-chart-bar"></i>    
+                System Analytics    
+            </a>    
+            <a href="#" class="tab-btn active">    
+                <i class="fas fa-chart-bar"></i>    
+                Master List 
+            </a>    
+            
+        </div>    
+    </header>    
+    
+        <div class="intro-box">
+            <h2><i class="fas fa-brain"></i> Core Idea</h2>
+            <p>Instead of hard-coding dropdown options in your trading journal form, this system allows you to dynamically manage all options from a single control page.</p>
+            <p>All changes are saved permanently using localStorage. When the journal page loads, it reads options from localStorage, ensuring your customizations are always applied.</p>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3><i class="fas fa-list-check"></i> Controlled Categories</h3>
+                <p>Manage 18 different dropdown categories including Account, Symbol, Model, News Impact, Psychology and more.</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-database"></i> Permanent Storage</h3>
+                <p>All options are saved to localStorage, ensuring no data loss on page refresh and permanent customization.</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-sync"></i> Real-time Updates</h3>
+                <p>Changes made here are immediately available in your trading journal. One source of truth for all dropdowns.</p>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="categories-sidebar">
+                <h3><i class="fas fa-folder-tree"></i> Categories</h3>
+                <ul class="category-list" id="categoryList">
+                    <!-- Categories will be populated by JavaScript -->
+                </ul>
+            </div>
+
+            <div class="options-manager">
+                <div class="manager-header">
+                    <h3 id="currentCategory">Account</h3>
+                    <div class="options-count" id="optionsCount">4 options</div>
+                </div>
+
+                <div class="options-list" id="optionsList">
+                    <!-- Options will be populated by JavaScript -->
+                </div>
+
+                <div class="controls">
+                    <div class="input-group">
+                        <input type="text" id="newOptionInput" placeholder="Add new option...">
+                        <button class="btn btn-primary" id="addOptionBtn">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                    <button class="btn btn-success" id="saveChangesBtn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+
+                <div class="reset-section">
+                    <h4><i class="fas fa-undo-alt"></i> Reset Options</h4>
+                    <p>Reset this category to its default options. This will overwrite your current custom options.</p>
+                    <div class="reset-buttons">
+                        <button class="btn btn-warning" id="resetCategoryBtn">
+                            <i class="fas fa-redo"></i> Reset This Category
+                        </button>
+                        <button class="btn btn-warning" id="resetAllBtn">
+                            <i class="fas fa-bomb"></i> Reset All Categories
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-info">
+            <h3><i class="fas fa-database"></i> Data Storage Information</h3>
+            <p>Each category is stored in localStorage with its own key (e.g., <code>accountOptions</code>, <code>symbolOptions</code>).</p>
+            <p>Data is stored as an array of strings. When the trading journal loads, it checks localStorage first. If custom options exist, it uses them; otherwise, it loads the default options.</p>
+            
+            <div class="storage-status">
+                <div>
+                    <strong>Storage Status:</strong>
+                    <span id="storageStatus">Checking...</span>
+                </div>
+                <button class="btn btn-primary" id="clearStorageBtn">
+                    <i class="fas fa-trash-alt"></i> Clear All Data
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Professional Trading Journal System | One Source of Truth | Zero Duplication</p>
+            <p>Changes made here will reflect in your trading journal immediately.</p>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Default options for each category
+        const defaultOptions = {
+            account: ["Main Account", "Demo Account", "Secondary Account", "Prop Account"],
+            symbol: ["EUR/USD", "GBP/USD", "USD/JPY", "AUD/USD", "USD/CAD", "NZD/USD", "USD/CHF", "XAU/USD", "XAG/USD", "BTC/USD", "ETH/USD"],
+            model: ["Trend Following", "Range Trading", "Breakout", "Reversal", "Scalping", "News Trading", "Swing Trading"],
+            newsImpact: ["High", "Medium", "Low", "None"],
+            narrative: ["Bullish", "Bearish", "Neutral", "Mixed"],
+            bias: ["Long", "Short", "Neutral"],
+            marketConditions: ["Trending", "Ranging", "Volatile", "Calm", "Breakout", "Reversal"],
+            tradeType: ["Swing Trade", "Day Trade", "Scalp", "Position Trade"],
+            session: ["Asian", "London", "New York", "London-New York Overlap", "24H (Crypto)"],
+            entryTimeframe: ["1M", "5M", "15M", "30M", "1H", "4H", "D", "W"],
+            confluences: ["Support/Resistance", "Trendline", "Fibonacci", "Moving Averages", "Multiple Timeframes", "Order Flow", "Market Structure", "Supply/Demand"],
+            entrySignals: ["Pin Bar", "Engulfing Pattern", "EMA Crossover", "MACD Crossover", "RSI Divergence", "Breakout", "Pullback"],
+            orderType: ["Market", "Limit", "Stop", "Stop Limit"],
+            position: ["Buy", "Sell"],
+            slManagement: ["Fixed", "Trailing", "Manual Adjustment", "Breakeven", "None"],
+            tpManagement: ["Full Take Profit", "Partial Take Profit", "Trailing Take Profit", "Manual Close"],
+            mistakes: ["Early Entry", "Late Entry", "Early Exit", "Late Exit", "Overtrading", "Revenge Trading", "Ignored SL", "Ignored TP", "Emotional Trading"],
+            psychology: ["Confident", "Calm", "Nervous", "Impatient", "Fearful", "Greedy", "Disciplined", "Indecisive"]
+        };
+
+        // Category display names and icons
+        const categories = [
+            { id: "account", name: "Account", icon: "fas fa-user" },
+            { id: "symbol", name: "Symbol", icon: "fas fa-chart-line" },
+            { id: "model", name: "Model", icon: "fas fa-project-diagram" },
+            { id: "newsImpact", name: "News Impact", icon: "fas fa-newspaper" },
+            { id: "narrative", name: "Narrative", icon: "fas fa-comment" },
+            { id: "bias", name: "Bias", icon: "fas fa-balance-scale" },
+            { id: "marketConditions", name: "Market Conditions", icon: "fas fa-chart-area" },
+            { id: "tradeType", name: "Type of Trade", icon: "fas fa-exchange-alt" },
+            { id: "session", name: "Session", icon: "fas fa-globe" },
+            { id: "entryTimeframe", name: "Entry Timeframe", icon: "fas fa-clock" },
+            { id: "confluences", name: "Confluences", icon: "fas fa-layer-group" },
+            { id: "entrySignals", name: "Entry Signals", icon: "fas fa-bell" },
+            { id: "orderType", name: "Order Type", icon: "fas fa-tasks" },
+            { id: "position", name: "Position", icon: "fas fa-arrow-up" },
+            { id: "slManagement", name: "SL Management", icon: "fas fa-shield-alt" },
+            { id: "tpManagement", name: "TP Management", icon: "fas fa-trophy" },
+            { id: "mistakes", name: "Mistakes", icon: "fas fa-exclamation-triangle" },
+            { id: "psychology", name: "Psychology", icon: "fas fa-brain" }
+        ];
+
+        // Current state
+        let currentCategory = "account";
+        let options = {};
+
+        // DOM elements
+        const categoryListEl = document.getElementById("categoryList");
+        const currentCategoryEl = document.getElementById("currentCategory");
+        const optionsCountEl = document.getElementById("optionsCount");
+        const optionsListEl = document.getElementById("optionsList");
+        const newOptionInputEl = document.getElementById("newOptionInput");
+        const addOptionBtn = document.getElementById("addOptionBtn");
+        const saveChangesBtn = document.getElementById("saveChangesBtn");
+        const resetCategoryBtn = document.getElementById("resetCategoryBtn");
+        const resetAllBtn = document.getElementById("resetAllBtn");
+        const clearStorageBtn = document.getElementById("clearStorageBtn");
+        const storageStatusEl = document.getElementById("storageStatus");
+        const notificationEl = document.getElementById("notification");
+
+        // Initialize the application
+        function init() {
+            loadOptionsFromStorage();
+            renderCategoryList();
+            renderOptions();
+            updateStorageStatus();
+            
+            // Set up event listeners
+            addOptionBtn.addEventListener("click", addOption);
+            newOptionInputEl.addEventListener("keypress", function(e) {
+                if (e.key === "Enter") addOption();
+            });
+            saveChangesBtn.addEventListener("click", saveOptions);
+            resetCategoryBtn.addEventListener("click", resetCurrentCategory);
+            resetAllBtn.addEventListener("click", resetAllCategories);
+            clearStorageBtn.addEventListener("click", clearAllData);
+        }
+
+        // Load options from localStorage or use defaults
+        function loadOptionsFromStorage() {
+            // Initialize options object with defaults
+            for (const category in defaultOptions) {
+                options[category] = [...defaultOptions[category]];
+            }
+            
+            // Try to load from localStorage
+            for (const category in defaultOptions) {
+                const stored = localStorage.getItem(`${category}Options`);
+                console.log(JSON.stringify(stored));
+                if (stored) {
+                    try {
+                        options[category] = JSON.parse(stored);
+                    } catch (e) {
+                        console.error(`Error parsing stored options for ${category}:`, e);
+                    }
+                }
+            }
+        }
+
+        // Render the category list in the sidebar
+        function renderCategoryList() {
+            categoryListEl.innerHTML = "";
+            
+            categories.forEach(category => {
+                const li = document.createElement("li");
+                li.className = `category-item ${category.id === currentCategory ? "active" : ""}`;
+                li.innerHTML = `
+                    <i class="${category.icon} category-icon"></i>
+                    <span>${category.name}</span>
+                `;
+                li.addEventListener("click", () => switchCategory(category.id));
+                categoryListEl.appendChild(li);
+            });
+        }
+
+        // Switch to a different category
+        function switchCategory(categoryId) {
+            currentCategory = categoryId;
+            renderCategoryList();
+            renderOptions();
+        }
+
+        // Render options for the current category
+        function renderOptions() {
+            // Update current category title
+            const category = categories.find(c => c.id === currentCategory);
+            currentCategoryEl.textContent = category.name;
+            
+            // Update options count
+            const count = options[currentCategory].length;
+            optionsCountEl.textContent = `${count} option${count !== 1 ? "s" : ""}`;
+            
+            // Render options list
+            optionsListEl.innerHTML = "";
+            
+            if (options[currentCategory].length === 0) {
+                optionsListEl.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--gray);"><i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i><p>No options found. Add some using the input above.</p></div>`;
+                return;
+            }
+            
+            options[currentCategory].forEach((option, index) => {
+                const optionEl = document.createElement("div");
+                optionEl.className = "option-item";
+                optionEl.innerHTML = `
+                    <span class="option-text">${option}</span>
+                    <button class="delete-option" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                // Add delete event listener
+                const deleteBtn = optionEl.querySelector(".delete-option");
+                deleteBtn.addEventListener("click", () => deleteOption(index));
+                
+                optionsListEl.appendChild(optionEl);
+            });
+        }
+
+        // Add a new option
+        function addOption() {
+            const newOption = newOptionInputEl.value.trim();
+            
+            if (!newOption) {
+                showNotification("Please enter an option value", "error");
+                return;
+            }
+            
+            // Check if option already exists
+            if (options[currentCategory].includes(newOption)) {
+                showNotification("This option already exists", "error");
+                return;
+            }
+            
+            // Add the option
+            options[currentCategory].push(newOption);
+            newOptionInputEl.value = "";
+            renderOptions();
+            showNotification(`"${newOption}" added to ${categories.find(c => c.id === currentCategory).name}`, "success");
+        }
+
+        // Delete an option
+        function deleteOption(index) {
+            const deletedOption = options[currentCategory][index];
+            options[currentCategory].splice(index, 1);
+            renderOptions();
+            showNotification(`"${deletedOption}" deleted from ${categories.find(c => c.id === currentCategory).name}`, "success");
+        }
+
+        // Save all options to localStorage
+        function saveOptions() {
+            for (const category in options) {
+                localStorage.setItem(`${category}Options`, JSON.stringify(options[category]));
+            }
+            updateStorageStatus();
+            showNotification("All changes saved to localStorage", "success");
+        }
+
+        // Reset current category to defaults
+        function resetCurrentCategory() {
+            if (!confirm(`Reset ${categories.find(c => c.id === currentCategory).name} to default options?`)) {
+                return;
+            }
+            
+            options[currentCategory] = [...defaultOptions[currentCategory]];
+            localStorage.removeItem(`${currentCategory}Options`);
+            renderOptions();
+            updateStorageStatus();
+            showNotification(`${categories.find(c => c.id === currentCategory).name} reset to defaults`, "warning");
+        }
+
+        // Reset all categories to defaults
+        function resetAllCategories() {
+            if (!confirm("Reset ALL categories to default options? This will delete all your customizations.")) {
+                return;
+            }
+            
+            for (const category in defaultOptions) {
+                options[category] = [...defaultOptions[category]];
+                localStorage.removeItem(`${category}Options`);
+            }
+            
+            renderOptions();
+            updateStorageStatus();
+            showNotification("All categories reset to defaults", "warning");
+        }
+
+        // Clear all data from localStorage
+        function clearAllData() {
+            if (!confirm("Clear ALL data from localStorage? This will delete all custom options and restore defaults.")) {
+                return;
+            }
+            
+            localStorage.clear();
+            loadOptionsFromStorage();
+            renderOptions();
+            updateStorageStatus();
+            showNotification("All localStorage data cleared", "success");
+        }
+
+        // Update storage status display
+        function updateStorageStatus() {
+            let storedCount = 0;
+            let totalCount = 0;
+            
+            for (const category in defaultOptions) {
+                totalCount++;
+                if (localStorage.getItem(`${category}Options`)) {
+                    storedCount++;
+                }
+            }
+            
+            storageStatusEl.textContent = `${storedCount}/${totalCount} categories customized`;
+            storageStatusEl.style.color = storedCount > 0 ? "var(--success)" : "var(--gray)";
+        }
+
+        // Show notification
+        function showNotification(message, type = "success") {
+            notificationEl.textContent = message;
+            notificationEl.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notificationEl.classList.remove("show");
+            }, 3000);
+        }
+
+        // Initialize when page loads
+        document.addEventListener("DOMContentLoaded", init);
+    </script>
+</body>
+</html>
