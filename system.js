@@ -697,24 +697,24 @@
             
             const confluencesData = calculateCombinedAnalytics('confluences', filteredTrades);
             console.log(JSON.stringify(confluencesData));
-            tableBody.innerHTML = confluencesData.flatMap(Bb =>
-            Bb.category.map(item => `
-                <tr>
-                    <td>${item}</td>
-                    <td>${item.model}</td>
-                    <td>${item.symbol}</td>
-                    <td>${item.count}</td>
-                    <td>
-                        <div class="outcomes-cell">
-                            <span class="outcome-badge outcome-profit">${item.wins}W</span>
-                            <span class="outcome-badge outcome-loss">${item.losses}L</span>
-                            <span class="outcome-badge outcome-break-even">${item.breakEvens}BE</span>
-                        </div>
-                    </td>
-                    <td class="win-rate">${item.winRate}%</td>
-                </tr>
- 						  `)
-            ).join('');            
+  						tableBody.innerHTML = confluencesData.flatMap(Bb =>
+						  Bb.category.map(category => `
+						    <tr>
+						      <td>${category}</td>
+						      <td>${Bb.model}</td>
+						      <td>${Bb.symbol}</td>
+						      <td>${Bb.count}</td>
+						      <td>
+						        <div class="outcomes-cell">
+						          <span class="outcome-badge outcome-profit">${Bb.wins}W</span>
+						          <span class="outcome-badge outcome-loss">${Bb.losses}L</span>
+						          <span class="outcome-badge outcome-break-even">${Bb.breakEvens}BE</span>
+						        </div>
+						      </td>
+						      <td class="win-rate">${Bb.winRate}%</td>
+						    </tr>
+						  `)
+						).join('');
         }
         
         // Table 12: Entry Signals Analysis
