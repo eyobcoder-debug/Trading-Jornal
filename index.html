@@ -4,7 +4,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    
     <title>Trading Journal - Journal Table</title>    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
-    <link rel="manifest" href="manifest.json">
     <style>    
         * {    
             margin: 0;    
@@ -528,8 +527,7 @@ justify-content: center;
 color: red;
 font-weight: bolder;
 }
-.scroll-top-btn {
-    
+.scroll-top-btn {    
     position: fixed;
     bottom: 30px;
     right: 30px;
@@ -569,7 +567,7 @@ font-weight: bolder;
     border: 1px solid #334155;
     border-radius: 50%;
     cursor: pointer;
-    display: none;
+    display: block;
     align-items: center;
     justify-content: center;
     font-size: 1rem;
@@ -589,6 +587,8 @@ font-weight: bolder;
 .scroll-horizontal-btn.right {
     right: 40px;
 }        
+
+
 </style>
 
 </head>    
@@ -636,7 +636,8 @@ font-weight: bolder;
                 <button class="btn btn-secondary" id="export-btn">    
                     <i class="fas fa-download"></i>    
                     Export    
-                </button>    
+                </button>                                     
+                    <input class="upload-file" type="file" id="fileInput" accept=".json">                
                 <button class="btn btn-danger" id="clear-all-btn">    
                     <i class="fas fa-trash"></i>    
                     Clear All    
@@ -666,10 +667,6 @@ font-weight: bolder;
                 <div class="sub-value">Average RR Achieved</div>    
             </div>    
         </div>    
-       <!-- Scroll to Top Button -->
-    <button id="scrollToTopBtn" class="scroll-top-btn" title="Go to top">
-        <i class="fas fa-chevron-up"></i>
-    </button>
     
     <footer>
         <p>Trading Journal v2.0 | Track • Analyze • Improve | Win Rate = Total Profit Trades / Total Trades</p>
@@ -1032,15 +1029,6 @@ font-weight: bolder;
 </div>    
 
 <script>
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(registration => {
-      console.log('Service Worker registered with scope:', registration.scope);
-    })
-    .catch(error => {
-      console.error('Service Worker registration failed:', error);
-    });
-   }
 // Function to load options from localStorage for each select element
 function loadOptionsFromLocalStorage() {
     // Map of select element IDs to localStorage keys
@@ -1166,44 +1154,8 @@ function enhanceMultipleSelects() {
     });
 }
 
-// Call these functions when the DOM is loaded
 
-    // Load options from localStorage
-    
-
-    
-const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 const journalTable = document.querySelector('.table-container');
-
-// Show/hide scroll button based on scroll position
-journalTable.addEventListener('scroll', function() {
-    if (journalTable.scrollTop > 100 || journalTable.scrollLeft > 100) {
-        scrollToTopBtn.style.display = 'none';
-    } else {
-        scrollToTopBtn.style.display = 'none';
-    }
-});
-
-// Scroll to top when button is clicked
-scrollToTopBtn.addEventListener('click', function() {
-    journalTable.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'smooth'
-    });
-});
-
-// Also show button if the window/page is scrolled
-window.addEventListener('scroll', function() {
-    if (window.pageYOffset > 300) {
-        scrollToTopBtn.style.display = 'flex';
-    } else {
-        // Only hide if table container is also not scrolled
-        if (journalTable.scrollTop <= 100 && journalTable.scrollLeft <= 100) {
-            scrollToTopBtn.style.display = 'none';
-        }
-    }
-});
         
 // Horizontal scroll buttons
 const scrollLeftBtn = document.getElementById('scrollLeftBtn');
@@ -1274,6 +1226,61 @@ let trades = JSON.parse(localStorage.getItem('tradingJournalTrades')) || [
     },
     // other seeds...
 ];
+
+
+function sortTradesByDateAndReassignIds(order = "asc") {
+    // 1. Sort trades by date
+    trades.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return order === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
+    // 2. Reassign IDs based on new order
+    trades.forEach((trade, index) => {
+        trade.id = `TR${String(index + 1).padStart(3, "0")}`;
+    });
+
+    // 3. Save back to localStorage
+    localStorage.setItem("tradingJournalTrades", JSON.stringify(trades));
+}
+
+document.getElementById('fileInput').addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+        try {
+            const parsedData = JSON.parse(e.target.result);
+
+            if (!Array.isArray(parsedData)) {
+                alert('JSON file must contain an array');
+                return;
+            }
+
+            // Push one by one into trades
+            parsedData.forEach(trade => {
+                trades.push(trade);
+            });
+
+            // Save back to localStorage (important)
+            localStorage.setItem('tradingJournalTrades', JSON.stringify(trades));
+
+            console.log('Trades imported successfully:', trades);
+        } catch (error) {
+            alert('Invalid JSON file');
+            console.error(JSON.stringify(error));
+        }
+    };
+
+    reader.readAsText(file);
+    sortTradesByDateAndReassignIds("desc"); // newest → oldest
+    renderJournalTable();
+});
+
+sortTradesByDateAndReassignIds("desc"); // newest → oldest
 
 // file input and label
 const fileInput = document.getElementById('image-upload');
@@ -1423,7 +1430,6 @@ function renderJournalTable(filteredTrades = trades) {
         return;
     }
     
-    filteredTrades = filteredTrades.reverse();
     
     filteredTrades.forEach((trade, index) => {
         let pnlClass, pnlStatus;
@@ -1528,7 +1534,7 @@ function renderJournalTable(filteredTrades = trades) {
             });
         }
     });
-    filteredTrades = filteredTrades.reverse();
+    
 }
 
 /* ---------------------------
@@ -1689,11 +1695,12 @@ async function saveTrade() {
     else trades.push(tradeData);
 
     localStorage.setItem('tradingJournalTrades', JSON.stringify(trades));
+    sortTradesByDateAndReassignIds("desc"); // newest → oldest   
     renderJournalTable();
     updateStatsSummary();
 
     document.getElementById('trade-modal').style.display = 'none';
-    alert(`Trade ${tradeId} saved successfully!`);
+    alert(`Trade ${tradeId} saved successfully!`);     
 }
 
 /* ---------------------------
