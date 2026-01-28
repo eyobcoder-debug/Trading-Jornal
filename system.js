@@ -422,7 +422,7 @@
             }
             
             const newsImpact = calculateAnalytics('newsImpact', filteredTrades);
-                                    
+                      console.log(JSON.stringify(newsImpact));              
 					tableBody.innerHTML = newsImpact.flatMap(item =>
 					  item.name.map(value => `
 					    <tr>
