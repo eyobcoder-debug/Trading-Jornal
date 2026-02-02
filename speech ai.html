@@ -106,161 +106,103 @@ const API_KEY = "AIzaSyBcGAVRdmLbTvVbCMWcxfJvbDylUBJBwZo";
 ================================ */
 let recognition;
 let isRecording = false;
-let silenceTimeout;
-const SILENCE_LIMIT = 5000; // 5 seconds in milliseconds
+let lastResult = '';
 
 function startRecording() {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    if (!('webkitSpeechRecognition' in window)) {
         alert("Speech Recognition not supported");
         return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
+    recognition = new webkitSpeechRecognition();
     recognition.lang = "en-US";
     recognition.continuous = true;
-    recognition.interimResults = true; // Important for detecting ongoing speech
+    recognition.interimResults = false;
 
-    // Store the last speech activity timestamp
-    let lastSpeechTime = Date.now();
-
-    // Reset the silence timer
-    function resetSilenceTimer() {
-        lastSpeechTime = Date.now();
-        clearTimeout(silenceTimeout);
-        
-        // Set a new timeout for 5 seconds
-        silenceTimeout = setTimeout(() => {
-            if (isRecording) {
-                console.log("5 seconds of silence detected - stopping recording");
-                stopRecording();
-            }
-        }, SILENCE_LIMIT);
-    }
-
-    // Check if speech is still active
-    function checkSpeechActivity() {
-        const timeSinceLastSpeech = Date.now() - lastSpeechTime;
-        
-        // If 5 seconds have passed without speech, stop
-        if (timeSinceLastSpeech >= SILENCE_LIMIT && isRecording) {
-            console.log("Silence limit reached - stopping recording");
-            stopRecording();
-        }
-    }
-
+    // Keep track of last result to avoid duplicates
     recognition.onresult = (event) => {
-        // Reset timer on any speech result (including interim)
-        resetSilenceTimer();
+        const result = event.results[event.results.length - 1];
+        const transcript = result[0].transcript;
         
-        // Process final results
-        let finalTranscript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript + " ";
-            }
-        }
-        
-        if (finalTranscript) {
-            document.getElementById("journalText").value += finalTranscript;
-        }
-    };
-
-    recognition.onsoundstart = () => {
-        console.log("Sound detected");
-        resetSilenceTimer();
-    };
-
-    recognition.onspeechstart = () => {
-        console.log("Speech started");
-        resetSilenceTimer();
-    };
-
-    recognition.onstart = () => {
-        console.log("Recording started");
-        isRecording = true;
-        lastSpeechTime = Date.now();
-        resetSilenceTimer();
-        updateUI(true);
-    };
-
-    recognition.onend = () => {
-        console.log("Recognition ended");
-        clearTimeout(silenceTimeout);
-        
-        // Don't auto-restart - we want controlled stopping
-        if (isRecording) {
-            // Check if we stopped due to silence
-            checkSpeechActivity();
+        // Only append new results
+        if (transcript !== lastResult) {
+            document.getElementById("journalText").value += transcript + " ";
+            lastResult = transcript;
         }
     };
 
     recognition.onerror = (event) => {
         console.warn("Speech error:", event.error);
-        clearTimeout(silenceTimeout);
         
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-            isRecording = false;
-            updateUI(false);
-            alert("Microphone access denied. Please allow microphone permissions.");
+        // Only retry for non-fatal errors
+        if (event.error !== 'not-allowed' && 
+            event.error !== 'service-not-allowed' &&
+            isRecording) {
+            
+            // Stop and restart cleanly
+            setTimeout(() => {
+                if (isRecording) {
+                    try {
+                        recognition.stop(); // Will trigger onend
+                    } catch (e) {
+                        console.warn("Error stopping:", e);
+                    }
+                }
+            }, 100);
         }
     };
 
-    // Start a periodic check every second
-    const activityCheckInterval = setInterval(() => {
-        if (!isRecording) {
-            clearInterval(activityCheckInterval);
-            return;
+    recognition.onend = () => {
+        console.log("Recognition ended");
+        
+        // Clean restart if still recording
+        if (isRecording) {
+            setTimeout(() => {
+                try {
+                    // Create a new instance for clean restart
+                    const newRecognition = new webkitSpeechRecognition();
+                    Object.assign(newRecognition, {
+                        lang: "en-US",
+                        continuous: true,
+                        interimResults: false,
+                        onresult: recognition.onresult,
+                        onerror: recognition.onerror,
+                        onend: recognition.onend
+                    });
+                    
+                    recognition = newRecognition;
+                    recognition.start();
+                } catch (e) {
+                    console.error("Clean restart failed:", e);
+                }
+            }, 300);
         }
-        checkSpeechActivity();
-    }, 1000);
-
-    // Store the interval ID on the recognition object for cleanup
-    recognition.activityCheckInterval = activityCheckInterval;
+    };
 
     try {
         recognition.start();
+        isRecording = true;
     } catch (e) {
-        console.error("Failed to start recording:", e);
-        clearTimeout(silenceTimeout);
-        clearInterval(activityCheckInterval);
+        console.error("Start failed:", e);
         isRecording = false;
-        updateUI(false);
     }
 }
 
 function stopRecording() {
     isRecording = false;
-    clearTimeout(silenceTimeout);
     
     if (recognition) {
-        // Clear the activity check interval
-        if (recognition.activityCheckInterval) {
-            clearInterval(recognition.activityCheckInterval);
-        }
-        
-        // Clean up event listeners
+        // Clean up
         recognition.onend = null;
         recognition.onerror = null;
         
         try {
             recognition.stop();
         } catch (e) {
-            console.error("Error stopping recognition:", e);
+            // Ignore
         }
         
         recognition = null;
-    }
-    
-    updateUI(false);
-    console.log("Recording stopped");
-}
-
-function updateUI(recording) {
-    const button = document.querySelector("#recordButton");
-    if (button) {
-        button.textContent = recording ? "⏹ Stop Recording" : "🎤 Start Recording";
-        button.style.backgroundColor = recording ? "#dc3545" : "#28a745";
     }
 }
     const selectConfig = {    
