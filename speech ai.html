@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AI Voice Trading Journal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+    body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: radial-gradient(circle at top, #111 0%, #000 70%);
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .app {
+        width: 95%;
+        max-width: 900px;
+        background: rgba(20, 20, 20, 0.9);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        text-align: center;
+        font-weight: 700;
+    }
+
+    textarea {
+        width: 100%;
+        height: 140px;
+        border-radius: 10px;
+        border: none;
+        padding: 12px;
+        resize: none;
+        font-size: 15px;
+        background: #111;
+        color: #fff;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(135deg, #00ffa6, #00c6ff);
+        color: #000;
+    }
+
+    button.secondary {
+        background: #222;
+        color: #fff;
+    }
+
+    pre {
+        background: #0b0b0b;
+        padding: 12px;
+        border-radius: 10px;
+        margin-top: 15px;
+        font-size: 13px;
+        max-height: 250px;
+        overflow: auto;
+    }
+</style>
+</head>
+
+<body>
+<div class="app">
+    <h1>🎤 AI Voice Trading Journal</h1>
+
+    <textarea id="journalText" placeholder="Press Start and speak your trade..."></textarea>
+
+    <div class="buttons">
+        <button onclick="startRecording()">🎙 Start Recording</button>
+        <button class="secondary" onclick="stopRecording()">🛑 Stop</button>
+        <button onclick="generateJournal()">🤖 Generate Journal</button>
+    </div>
+
+    <pre id="output"></pre>
+</div>
+
+<script>
+/* ===============================
+   CONFIG
+================================ */
+const API_KEY = "AIzaSyBcGAVRdmLbTvVbCMWcxfJvbDylUBJBwZo";
+
+/* ===============================
+   SPEECH RECOGNITION
+================================ */
+let recognition;
+let isRecording = false;
+let silenceTimeout;
+const SILENCE_LIMIT = 5000; // 5 seconds in milliseconds
+
+function startRecording() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        alert("Speech Recognition not supported");
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = true; // Important for detecting ongoing speech
+
+    // Store the last speech activity timestamp
+    let lastSpeechTime = Date.now();
+
+    // Reset the silence timer
+    function resetSilenceTimer() {
+        lastSpeechTime = Date.now();
+        clearTimeout(silenceTimeout);
+        
+        // Set a new timeout for 5 seconds
+        silenceTimeout = setTimeout(() => {
+            if (isRecording) {
+                console.log("5 seconds of silence detected - stopping recording");
+                stopRecording();
+            }
+        }, SILENCE_LIMIT);
+    }
+
+    // Check if speech is still active
+    function checkSpeechActivity() {
+        const timeSinceLastSpeech = Date.now() - lastSpeechTime;
+        
+        // If 5 seconds have passed without speech, stop
+        if (timeSinceLastSpeech >= SILENCE_LIMIT && isRecording) {
+            console.log("Silence limit reached - stopping recording");
+            stopRecording();
+        }
+    }
+
+    recognition.onresult = (event) => {
+        // Reset timer on any speech result (including interim)
+        resetSilenceTimer();
+        
+        // Process final results
+        let finalTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript + " ";
+            }
+        }
+        
+        if (finalTranscript) {
+            document.getElementById("journalText").value += finalTranscript;
+        }
+    };
+
+    recognition.onsoundstart = () => {
+        console.log("Sound detected");
+        resetSilenceTimer();
+    };
+
+    recognition.onspeechstart = () => {
+        console.log("Speech started");
+        resetSilenceTimer();
+    };
+
+    recognition.onstart = () => {
+        console.log("Recording started");
+        isRecording = true;
+        lastSpeechTime = Date.now();
+        resetSilenceTimer();
+        updateUI(true);
+    };
+
+    recognition.onend = () => {
+        console.log("Recognition ended");
+        clearTimeout(silenceTimeout);
+        
+        // Don't auto-restart - we want controlled stopping
+        if (isRecording) {
+            // Check if we stopped due to silence
+            checkSpeechActivity();
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.warn("Speech error:", event.error);
+        clearTimeout(silenceTimeout);
+        
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            isRecording = false;
+            updateUI(false);
+            alert("Microphone access denied. Please allow microphone permissions.");
+        }
+    };
+
+    // Start a periodic check every second
+    const activityCheckInterval = setInterval(() => {
+        if (!isRecording) {
+            clearInterval(activityCheckInterval);
+            return;
+        }
+        checkSpeechActivity();
+    }, 1000);
+
+    // Store the interval ID on the recognition object for cleanup
+    recognition.activityCheckInterval = activityCheckInterval;
+
+    try {
+        recognition.start();
+    } catch (e) {
+        console.error("Failed to start recording:", e);
+        clearTimeout(silenceTimeout);
+        clearInterval(activityCheckInterval);
+        isRecording = false;
+        updateUI(false);
+    }
+}
+
+function stopRecording() {
+    isRecording = false;
+    clearTimeout(silenceTimeout);
+    
+    if (recognition) {
+        // Clear the activity check interval
+        if (recognition.activityCheckInterval) {
+            clearInterval(recognition.activityCheckInterval);
+        }
+        
+        // Clean up event listeners
+        recognition.onend = null;
+        recognition.onerror = null;
+        
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.error("Error stopping recognition:", e);
+        }
+        
+        recognition = null;
+    }
+    
+    updateUI(false);
+    console.log("Recording stopped");
+}
+
+function updateUI(recording) {
+    const button = document.querySelector("#recordButton");
+    if (button) {
+        button.textContent = recording ? "⏹ Stop Recording" : "🎤 Start Recording";
+        button.style.backgroundColor = recording ? "#dc3545" : "#28a745";
+    }
+}
+    const selectConfig = {    
+        'account': 'accountOptions',    
+        'symbol': 'symbolOptions',    
+        'model': 'modelOptions',    
+        'news-impact': 'newsImpactOptions',    
+        'narrative': 'narrativeOptions',    
+        'bias': 'biasOptions',    
+        'market-conditions': 'marketConditionsOptions',    
+        'trade-type': 'tradeTypeOptions',    
+        'session': 'sessionOptions',    
+        'entry-timeframe': 'entryTimeframeOptions',    
+        'confluences': 'confluencesOptions',    
+        'entry-signals': 'entrySignalsOptions',    
+        'order-type': 'orderTypeOptions',    
+        'position': 'positionOptions',    
+        'sl-management': 'slManagementOptions',    
+        'tp-management': 'tpManagementOptions',    
+        'mistakes': 'mistakesOptions',    
+        'psychology': 'psychologyOptions'    
+    };    
+    
+    // Default options as fallback    
+    const defaultOptions = {    
+        'account': ["Main Account", "Demo Account", "Secondary Account", "Prop Account"],    
+        'symbol': ["EUR/USD", "GBP/USD", "USD/JPY", "AUD/USD", "USD/CAD", "NZD/USD", "USD/CHF", "XAU/USD", "XAG/USD", "BTC/USD", "ETH/USD"],    
+        'model': ["Trend Following", "Range Trading", "Breakout", "Reversal", "Scalping", "News Trading", "Swing Trading"],    
+        'news-impact': ["High", "Medium", "Low", "None"],    
+        'narrative': ["Bullish", "Bearish", "Neutral", "Mixed"],    
+        'bias': ["Long", "Short", "Neutral"],    
+        'market-conditions': ["Trending", "Ranging", "Volatile", "Calm", "Breakout", "Reversal"],    
+        'trade-type': ["Swing Trade", "Day Trade", "Scalp", "Position Trade"],    
+        'session': ["Asian", "London", "New York", "London-New York Overlap", "24H (Crypto)"],    
+        'entry-timeframe': ["1M", "5M", "15M", "30M", "1H", "4H", "D", "W"],    
+        'confluences': ["Support/Resistance", "Trendline", "Fibonacci", "Moving Averages", "Multiple Timeframes", "Order Flow", "Market Structure", "Supply/Demand"],    
+        'entry-signals': ["Pin Bar", "Engulfing Pattern", "EMA Crossover", "MACD Crossover", "RSI Divergence", "Breakout", "Pullback"],    
+        'order-type': ["Market", "Limit", "Stop", "Stop Limit"],    
+        'position': ["Buy", "Sell"],    
+        'sl-management': ["Fixed", "Trailing", "Manual Adjustment", "Breakeven", "None"],    
+        'tp-management': ["Full Take Profit", "Partial Take Profit", "Trailing Take Profit", "Manual Close"],    
+        'mistakes': ["Early Entry", "Late Entry", "Early Exit", "Late Exit", "Overtrading", "Revenge Trading", "Ignored SL", "Ignored TP", "Emotional Trading"],    
+        'psychology': ["Confident", "Calm", "Nervous", "Impatient", "Fearful", "Greedy", "Disciplined", "Indecisive"]    
+    };    
+  
+function getRealOptions(localStorageKey, defaultArray) {
+    try {
+        const stored = JSON.parse(localStorage.getItem(localStorageKey));
+
+        if (
+            Array.isArray(stored) &&
+            stored.length > 0 &&
+            stored.every(v => typeof v === "string")
+        ) {
+            return stored;
+        }
+    } catch (e) {}
+
+    return defaultArray;
+}
+
+function getAllRealOptionsObject(selectConfig, defaultOptions) {
+    const result = {};
+
+    Object.entries(selectConfig).forEach(([selectId, localStorageKey]) => {
+        result[selectId] = getRealOptions(
+            localStorageKey,
+            defaultOptions[selectId]
+        );
+    });
+
+    return result;
+}
+
+const allRealOptionsObject = getAllRealOptionsObject(selectConfig, defaultOptions);
+
+/* ===============================
+   GEMINI PROMPT (UPDATED — more strict, clearer mapping rules and non-select guidance)
+================================ */
+const SYSTEM_PROMPT = `
+Return ONLY valid JSON.
+No explanations.
+
+Schema:
+{
+"id":"TR001",
+"account":"Demo Account",
+"actualRR":0,
+"bias":"",
+"confluences":[],
+"date":"2026-01-28",
+"entrySignals":[],
+"entryTimeframe":"",
+"lessonsLearned":"",
+"marketConditions":[],
+"maxRR":0,
+"mistakes":[],
+"model":"",
+"narrative":"",
+"netPnl":0,
+"newsImpact":[],
+"orderType":"",
+"position":"",
+"psychology":[],
+"risk":1,
+"screenshotIds":[],
+"session":"",
+"slManagement":[],
+"slPips":0,
+"symbol":"",
+"tpManagement":[],
+"tradeType":"Scalp"
+}
+
+Definitions and strict rules (follow exactly):
+1) GENERAL: Always return a JSON object that exactly matches the schema above. Include all keys. For any field with no valid user-provided value, use an appropriate empty value: empty string for single-value text fields, empty array for multi-select lists, and 0 or a sensible default for numeric fields.
+
+2) ID: If the user provided an id, ensure it starts with "TR" (case-insensitive). If it doesn't, transform it to start with "TR" keeping any digits (e.g. "100" -> "TR100", "tr5" -> "TR5"). If the user gave no id, set "id" to "TR100".
+
+3) NUMERICS:
+ - actualRR and maxRR: must be numbers (float allowed). Accept formats like "2", "2.0", or ratio strings like "2:1" (convert to 2) or "1:2" (convert to 0.5). If parsing fails, set to 0.
+ - netPnl and slPips: must be numbers (signed allowed). If user includes currency symbols or commas, strip them and parse the number.
+ - risk: must be a number between 0 and 100. If user says "1%" treat as 1.
+
+4) DATE: date must be ISO format YYYY-MM-DD. If user gives a natural date (e.g. "Jan 28 2026"), convert to ISO. If missing, set to the current date in ISO format.
+
+5) NON-SELECT FIELDS (detailed guidance):
+ These fields are free-text and require normalization and concise content:
+ - lessonsLearned: produce a short, specific sentence or 2 (max 200 characters) summarizing what the trader learned from the trade. Prefer action-oriented phrasing: "Avoided scalp during low liquidity" or "Tightened SL after false breakout".
+ - model: single-choice (from select list) but can be free text; prefer exact option when possible (see mapping rules).
+ - narrative / bias: single-word or short phrase (but prefer to map to the select options provided).
+
+6) SELECT FIELDS (mapping rules — how to relate user input to provided options):
+ - The full set of allowed selects is provided below as a JSON object. Use only values from these lists for select fields (single-select or multi-select as specified). The select lists to use are:
+${JSON.stringify(allRealOptionsObject)}
+
+ - Mapping algorithm (apply in this order):
+   a) Normalize user input: trim, lowercase, remove punctuation, collapse spaces.
+   b) Exact-case-insensitive match -> accept.
+   c) Substring match: if any option contains the normalized user token as a whole word, prefer that option.
+   d) Synonym map: check common synonyms and abbreviations (e.g. "gold" -> "XAU/USD", "supply demand" -> "Supply/Demand", "ema cross" -> "EMA Crossover", "long bias" -> "Long"). Maintain a small default synonym set; if none matches, proceed.
+   e) Fuzzy match: compute token overlap or edit-distance similarity; accept the option with the highest similarity score if score >= 0.5.
+   f) If multiple options tie, prefer the shorter option text. If no option passes threshold, leave the field empty.
+
+ - For multiple-select fields (news-impact, market-conditions, confluences, entry-signals, sl-management, tp-management, mistakes, psychology):
+   * Accept up to 5 mapped entries. If user supplies a comma-, semicolon- or newline-separated list, map each item individually using the algorithm above. Return an array of mapped option strings (no duplicates).
+
+7) SPECIAL: screenshotIds
+ - This field should be an array containing exactly one URL. If the user supplies one or more valid image URLs, include the first valid one only. If the user supplies none, insert this fallback URL exactly: "https://picsum.photos/seed/trade/1200/800".
+ - Validate that the URL begins with http or https. If not valid, use the fallback.
+
+8) PRESERVE TYPES: All list fields must be arrays of strings. All numeric fields must be numbers (not strings). Strings must not contain surrounding quotes in the JSON output.
+
+9) MISC VALIDATION:
+ - position must be either "Buy" or "Sell" (map from synonyms like "long" -> "Buy", "short" -> "Sell").
+ - orderType must be one of the order-type options.
+ - entryTimeframe must use one of the entry-timeframe tokens (e.g. "1M", "5M", "1H", "D").
+
+10) ERRORS: If the user input is contradictory (e.g. says "Buy" but netPnl is negative and user claims closed win), do not attempt to reason — simply map values literally and keep the JSON valid.
+
+11) OUTPUT: Return only the JSON object and nothing else. No surrounding code fences, no comments, no extra text.
+
+Example of mapping behavior (for implementation reference only inside the system prompt):
+ - User input: "i shorted btc after big news, RR 1:2, used trailing stop" -> map to { position: "Sell", symbol: "BTC/USD", actualRR: 0.5, slManagement: ["Trailing"] }
+
+Multiple selects: treat user lists as independent tokens; map each token separately and return unique mapped options.
+
+Strict: If any instruction above conflicts with another, prioritize producing valid JSON that matches the schema exactly and preserves types.
+`;
+
+function extractJSON(text) {
+    // Remove markdown code fences
+    text = text.replace(/```json|```/g, "").trim();
+
+    // Extract JSON object
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+
+    if (firstBrace === -1 || lastBrace === -1) {
+        throw new Error("No JSON object found");
+    }
+
+    return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+}
+
+/* ===============================
+   GEMINI CALL
+================================ */
+async function generateJournal() {
+    const text = document.getElementById("journalText").value.trim();
+    if (!text) return alert("Speak something first.");
+
+    const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                contents: [
+                    { role: "user", parts: [{ text }] }
+                ]
+            })
+        }
+    );
+
+    const data = await res.json();
+    const rawText = data.candidates[0].content.parts[0].text;
+    const json = extractJSON(rawText);
+
+    saveTrade(json);
+    document.getElementById("output").textContent =
+        JSON.stringify(json, null, 2);
+}
+
+/* ===============================
+   LOCAL STORAGE SAVE
+================================ */
+function saveTrade(trade) {
+    let trades = JSON.parse(
+        localStorage.getItem("tradingJournalTrades")
+    ) || [];
+
+    const index = trades.findIndex(t => t.id === trade.id);
+    if (index >= 0) trades[index] = trade;
+    else trades.push(trade);
+
+    localStorage.setItem(
+        "tradingJournalTrades",
+        JSON.stringify(trades)
+    );
+    alert("it saved successfully!!!")
+}
+
+</script>
+</body>
+</html>
