@@ -1,4 +1,5 @@
-<-- <!DOCTYPE html>    <html lang="en">    
+<!DOCTYPE html>    
+<html lang="en">    
 <head>    
     <meta charset="UTF-8">    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    
@@ -438,31 +439,31 @@
         .nav-tabs {    
             flex-wrap: wrap;    
         }    
-            
+
         .tab-btn {    
             padding: 10px 15px;    
             font-size: 0.9rem;    
         }    
-            
+
         .controls {    
             flex-direction: column;    
             align-items: stretch;    
         }    
-            
+
         .search-box {    
             max-width: 100%;    
         }    
-            
+
         .action-buttons {    
             width: 100%;    
             justify-content: space-between;    
         }    
-            
+
         .btn {    
             flex-grow: 1;    
             justify-content: center;    
         }    
-            
+
         .form-grid {    
             grid-template-columns: 1fr;    
         }    
@@ -586,7 +587,44 @@ font-weight: bolder;
 
 .scroll-horizontal-btn.right {
     right: 40px;
-}        
+} 
+
+/* Ensure select elements show their selected value */
+select {
+    color: #e2e8f0 !important; /* Light text color */
+    background-color: #1e293b !important; /* Dark background */
+}
+
+select option {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+/* For the select when it has a selected value */
+select:not([multiple]) {
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+    appearance: menulist;
+}
+
+/* Style the selected value indicator */
+select:focus,
+select:active,
+select:hover {
+    color: #e2e8f0;
+    background-color: #1e293b;
+}
+
+/* If the select has a custom wrapper, make sure it shows the text */
+.select-wrapper select {
+    color: #e2e8f0 !important;
+}     
+
+select {
+    color: transparent;
+    text-indent: 1px;
+    text-overflow: '';
+}  
 
 
 </style>
@@ -615,7 +653,7 @@ font-weight: bolder;
                 <i class="fas fa-chart-bar"></i>    
                 Speech AI
             </a>    
-            
+
         </div>    
     </header>    
 
@@ -625,13 +663,13 @@ font-weight: bolder;
             <i class="fas fa-table"></i>    
             Trading Journal - All Trades    
         </h2>    
-            
+
         <div class="controls">    
             <div class="search-box">    
                 <i class="fas fa-search"></i>    
                 <input type="text" id="search-trades" placeholder="Search trades by ID, symbol, or model...">    
             </div>    
-                
+
             <div class="action-buttons">    
                 <button class="btn btn-primary" id="add-trade-btn">    
                     <i class="fas fa-plus"></i>    
@@ -648,7 +686,7 @@ font-weight: bolder;
                 </button>    
             </div>    
         </div>    
-            
+
         <div class="stats-summary">    
             <div class="stat-card">    
                 <h4>Total Trades</h4>    
@@ -671,7 +709,7 @@ font-weight: bolder;
                 <div class="sub-value">Average RR Achieved</div>    
             </div>    
         </div>    
-    
+
     <footer>
         <p>Trading Journal v2.0 | Track • Analyze • Improve | Win Rate = Total Profit Trades / Total Trades</p>
     </footer>
@@ -716,6 +754,7 @@ font-weight: bolder;
                         <th>Lessons Learned</th>    
                         <th>Psychology</th>    
                         <th>Action</th>    
+                        <th>preview</th>
                     </tr>    
                 </thead>    
                 <tbody id="journal-table-body">    
@@ -735,7 +774,7 @@ font-weight: bolder;
                 </h2>    
                 <button class="close-btn" id="close-modal">&times;</button>    
             </div>    
-                
+
             <div class="modal-body">    
                 <form id="trade-form">    
                     <div class="form-grid">    
@@ -744,7 +783,7 @@ font-weight: bolder;
                             <label for="trade-id"><i class="fas fa-hashtag"></i> Trade ID</label>    
                             <input type="text" id="trade-id" required readonly>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="account"><i class="fas fa-wallet"></i> Account</label>    
                             <select id="account" required>    
@@ -755,12 +794,12 @@ font-weight: bolder;
                                 <option value="Prop Account">Prop Account</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="entry-exit-date"><i class="fas fa-calendar"></i> Entry & Exit Date</label>    
                             <input type="date" id="entry-exit-date" required>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="symbol"><i class="fas fa-chart-line"></i> Symbol</label>    
                             <select id="symbol" required>    
@@ -778,7 +817,7 @@ font-weight: bolder;
                                 <option value="ETH/USD">ETH/USD</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="model"><i class="fas fa-cogs"></i> Model</label>    
                             <select id="model" required>    
@@ -792,7 +831,7 @@ font-weight: bolder;
                                 <option value="Swing Trading">Swing Trading</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="news-impact"><i class="fas fa-newspaper"></i> News Impact</label>    
                             <select id="news-impact" multiple required>    
@@ -803,7 +842,7 @@ font-weight: bolder;
                                 <option value="None">None</option>    
                             </select>    
                         </div>    
-                            
+
                         <!-- Column 2 -->    
                         <div class="form-group">    
                             <label for="narrative"><i class="fas fa-comment"></i> Narrative</label>    
@@ -815,7 +854,7 @@ font-weight: bolder;
                                 <option value="Mixed">Mixed</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="bias"><i class="fas fa-balance-scale"></i> Bias</label>    
                             <select id="bias" required>    
@@ -825,7 +864,7 @@ font-weight: bolder;
                                 <option value="Neutral">Neutral</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="market-conditions"><i class="fas fa-chart-area"></i> Market Conditions</label>    
                             <select id="market-conditions" multiple required>    
@@ -838,7 +877,7 @@ font-weight: bolder;
                                 <option value="Reversal">Reversal</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="trade-type"><i class="fas fa-exchange-alt"></i> Type of Trade</label>    
                             <select id="trade-type" required>    
@@ -849,7 +888,7 @@ font-weight: bolder;
                                 <option value="Position Trade">Position Trade</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="session"><i class="fas fa-clock"></i> Session</label>    
                             <select id="session" required>    
@@ -861,7 +900,7 @@ font-weight: bolder;
                                 <option value="24H">24H (Crypto)</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="entry-timeframe"><i class="fas fa-chart-bar"></i> Entry Time Frame</label>    
                             <select id="entry-timeframe" required>    
@@ -876,7 +915,7 @@ font-weight: bolder;
                                 <option value="W">Weekly</option>    
                             </select>    
                         </div>    
-                            
+
                         <!-- Column 3 -->    
                         <div class="form-group">    
                             <label for="confluences"><i class="fas fa-layer-group"></i> Confluences</label>    
@@ -892,7 +931,7 @@ font-weight: bolder;
                                 <option value="Supply/Demand">Supply/Demand</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="entry-signals"><i class="fas fa-bell"></i> Entry Signals</label>    
                             <select id="entry-signals" multiple size="200" required>    
@@ -906,7 +945,7 @@ font-weight: bolder;
                                 <option value="Pullback">Pullback</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="order-type"><i class="fas fa-tasks"></i> Order Type</label>    
                             <select id="order-type" required>    
@@ -917,7 +956,7 @@ font-weight: bolder;
                                 <option value="Stop Limit">Stop Limit</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="position"><i class="fas fa-arrow-up"></i> Position</label>    
                             <select id="position" required>    
@@ -926,17 +965,17 @@ font-weight: bolder;
                                 <option value="Sell">Sell</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="sl-pips"><i class="fas fa-shield-alt"></i> SL (Pips)</label>    
                             <input type="number" id="sl-pips" min="0" step="0.1" required>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="risk"><i class="fas fa-exclamation-triangle"></i> Risk (%)</label>    
                             <input type="number" id="risk" min="0" max="100" step="0.1" required>    
                         </div>    
-                            
+
                         <!-- Column 4 -->    
                         <div class="form-group">    
                             <label for="sl-management"><i class="fas fa-sliders-h"></i> SL Management</label>    
@@ -949,17 +988,17 @@ font-weight: bolder;
                                 <option value="None">None</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="actual-rr"><i class="fas fa-calculator"></i> Actual RR Achieved</label>    
                             <input type="number" id="actual-rr" min="0" step="0.1" required>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="max-rr"><i class="fas fa-chart-line"></i> Max RR Reached</label>    
                             <input type="number" id="max-rr" min="0" step="0.1" required>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="tp-management"><i class="fas fa-bullseye"></i> TP Management</label>    
                             <select id="tp-management" multiple size="200" required>    
@@ -970,16 +1009,16 @@ font-weight: bolder;
                                 <option value="Manual Close">Manual Close</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="net-pnl"><i class="fas fa-money-bill-wave"></i> Net P&L ($)</label>    
                             <input type="number" id="net-pnl" step="0.01" required>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="mistakes"><i class="fas fa-times-circle"></i> Mistakes</label>    
                             <select id="mistakes" multiple size="200" required>    
-                                   
+
                                 <option value="Early Entry">Early Entry</option>    
                                 <option value="Late Entry">Late Entry</option>    
                                 <option value="Early Exit">Early Exit</option>    
@@ -991,7 +1030,7 @@ font-weight: bolder;
                                 <option value="Emotional Trading">Emotional Trading</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group">    
                             <label for="psychology"><i class="fas fa-brain"></i> Psychology</label>    
                             <select id="psychology" multiple size="200" required>    
@@ -1006,18 +1045,18 @@ font-weight: bolder;
                                 <option value="Indecisive">Indecisive</option>    
                             </select>    
                         </div>    
-                            
+
                         <div class="form-group full-width">    
                             <label for="lessons-learned"><i class="fas fa-graduation-cap"></i> Lessons Learned</label>    
                             <textarea id="lessons-learned" placeholder="What did you learn from this trade? What would you do differently next time?" required></textarea>    
                         </div>    
-                            
+
                         <div class="form-group full-width">    
                             <label id="file-label"><i class="fas fa-images"></i> Entry and Exit Screenshots</label>                                    
                                 <input type="file" multiple name="image-upload" id="image-upload" accept="image/*">                                    
                         </div>    
                     </div>    
-                        
+
                     <div class="form-actions">    
                         <button type="button" class="btn btn-secondary" id="cancel-trade">Cancel</button>    
                         <button type="submit" class="btn btn-primary">Save Trade</button>    
@@ -1026,7 +1065,7 @@ font-weight: bolder;
             </div>    
         </div>    
     </div>    
-        
+
     <footer>    
         <p>Trading Journal v2.0 | Journal Table | Win Rate = Total Profit Trades / Total Trades</p>    
     </footer>    
@@ -1037,6 +1076,4 @@ font-weight: bolder;
 </script>
 
 </body>    
-</html>  -->Hello
-
-
+</html>  
